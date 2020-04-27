@@ -10,7 +10,7 @@ import re
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.multioutput import MultiOutputClassifier
@@ -51,14 +51,31 @@ def tokenize(text):
 
 def build_model():
 
-    ''' Returns pipeline which specifies order of data processing and then training '''
+	''' Returns pipeline which specifies order of data processing and then training '''
 
-    pipeline = Pipeline([
-        ('vect', CountVectorizer(tokenizer=tokenize)),
-        ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(AdaBoostClassifier()))
-    ])
-    return pipeline
+	# pipeline = Pipeline([
+	#     ('vect', CountVectorizer(tokenizer=tokenize)),
+	#     ('tfidf', TfidfTransformer()),
+	#     ('clf', MultiOutputClassifier(AdaBoostClassifier()))
+	# ])
+	# return pipeline
+	multi_output_classifier = MultiOutputClassifier(RandomForestClassifier())
+
+	pipeline = Pipeline([
+		('vect', CountVectorizer(tokenizer=tokenize)),
+		('tfidf', TfidfTransformer()),
+		('clf', multi_output_classifier)
+	])
+
+	# parameters = {'clf__estimator__max_depth': [10, 50, None],
+	# 			'clf__estimator__min_samples_leaf':[2, 5, 10]}
+
+	parameters = {"clf__estimator__max_depth": [3],
+				"clf__estimator__max_features": [1, 3],}
+
+	cv = GridSearchCV(pipeline, parameters)
+
+	return cv
 
 
 def evaluate_model(model, X_test, Y_test):
