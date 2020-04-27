@@ -16,6 +16,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV, train_test_split
 from sklearn.externals import joblib
+from sklearn.metrics import classification_report
 
 def load_data(database_filepath):
 
@@ -62,11 +63,20 @@ def build_model():
 
 def evaluate_model(model, X_test, Y_test):
 
-    ''' Takes in model, Test Data ,and Test labels then returns accuracy of model on test data '''
+	''' Takes in model, Test Data ,and Test labels then returns accuracy of model on test data and prints classification report for each
+	class in multi class output'''
 
-    y_pred = model.predict(X_test)
-    overall_accuracy = (y_pred == Y_test).mean().mean()
-    return overall_accuracy*100
+	y_pred = model.predict(X_test)
+	overall_accuracy = (y_pred == Y_test).mean().mean()
+	print("Overall accuracy of our model is "+ str(overall_accuracy))
+	
+	category_names = Y_test.columns
+	Y_test = Y_test.values.astype('int')
+	y_pred = y_pred.astype('int')
+	y_pred[y_pred > 1] = 1
+	Y_test[Y_test > 1] = 1
+	print("The f1 score, precision and recall for the test set is outputted for each category")
+	print(classification_report(Y_test, y_pred, target_names=category_names))
 
 
 
